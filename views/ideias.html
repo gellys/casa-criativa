@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-br ">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ideias - Casa Criativa</title>
+
+    <!--CSS-->
+    <link rel="stylesheet" href="style.css">
+
+    <!-- FONTE -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;900&display=swap"
+        rel="stylesheet">
+</head>
+
+<body id="page-ideas">
+    <div id="container">
+        <header>
+            <a href="/">
+                <img src="Logo.png" alt="Imagem da Logomarca">
+            </a>
+            <nav>
+                <li><a href="/">Início</a></li>
+                <li><a class="button" href="#" onclick="onOff()">Nova Ideia</a></li>
+            </nav>
+        </header>
+        <section id="title">
+            <p>em exibição</p>
+            <h1>Ideias</h1>
+        </section>
+
+        <main>
+            <section id="ideas">
+                {% for idea in ideas %}
+                <div class="idea">
+                    <img src="{{idea.img}}" alt="Imagem de {{ideia.title}}">
+                    <div class="content">
+                        <h3>{{idea.title}}</h3>
+                        <p>{{idea.category}}</p>
+                        <div class="description">
+                            {{idea.description}}
+                        </div>
+                        <a href="{{idea.url}}" target="_blank">Ir para a ideia</a>
+                    </div>
+                </div>
+                {% endfor %}
+            </section>
+        </main>
+        <footer>
+            Com 🖤 <a href="#">Gellys</a>
+        </footer>
+    </div>
+
+    {% include "modal.html" %}
+
+    <!--JS-->
+    <script src="index.js"></script>
+</body>
+
+</html>
