@@ -2,56 +2,13 @@
 const express = require("express")
 const server = express()
 
-const ideas = [
-    {
-        img: "https://image.flaticon.com/icons/svg/2729/2729007.svg",
-        title: "Cursos de Programação",
-        category: "Estudo",
-        description: "Lorem ipsum dolor sit amet consectetur, adipisicing elit. adipisicing elit. Eos laboriosam doloribus quidem quasi vero excepturi, rerum eum.",
-        url: "https://github.com/gellys"
-    },
-    {
-        img: "https://image.flaticon.com/icons/svg/2729/2729005.svg",
-        title: "Exercícios",
-        category: "Saúde",
-        description: "Lorem ipsum dolor sit amet consectetur, adipisicing elit. adipisicing elit. Eos laboriosam doloribus quidem quasi vero excepturi, rerum eum.",
-        url: "https://github.com/gellys"
-    },
-    {
-        img: "https://image.flaticon.com/icons/svg/2729/2729032.svg",
-        title: "Cantar",
-        category: "Diversão",
-        description: "Lorem ipsum dolor sit amet consectetur, adipisicing elit. adipisicing elit. Eos laboriosam doloribus quidem quasi vero excepturi, rerum eum.",
-        url: "https://github.com/gellys"
-    },
-    {
-        img: "https://image.flaticon.com/icons/svg/2729/2729054.svg",
-        title: "Brincar com seu animal de Estimação",
-        category: "Saúde",
-        description: "Lorem ipsum dolor sit amet consectetur, adipisicing elit. adipisicing elit. Eos laboriosam doloribus quidem quasi vero excepturi, rerum eum.",
-        url: "https://github.com/gellys"
-    },
-    {
-        img: "https://image.flaticon.com/icons/svg/2729/2729056.svg",
-        title: "Pintar as unhas",
-        category: "Cuidados Pessoais",
-        description: "Lorem ipsum dolor sit amet consectetur, adipisicing elit. Eos laboriosam doloribus quidem quasi vero excepturi, rerum eum.",
-        url: "https://github.com/gellys"
-    },
-    {
-        img: "https://image.flaticon.com/icons/svg/2729/2729021.svg",
-        title: "Jogar",
-        category: "Diversão",
-        description: "Lorem ipsum dolor sit amet consectetur, adipisicing elit.Eos laboriosam doloribus quidem quasi vero excepturi, rerum eum.",
-        url: "https://github.com/gellys"
-    }
-]
-
-
-
+const db = require("./db")
 
 //Configurar arquivos estáticos (css,cript,img)
 server.use(express.static("public"))
+
+// Habilitando uso do req.body
+server.use(express.urlencoded({ extended: true }))
 
 //Configurando o nunjucks
 const nunjucks = require("nunjucks")
@@ -64,25 +21,69 @@ nunjucks.configure("views", {
 // E capturo o pedido do cliente para responder
 server.get("/", function (req, res) {
 
-    const reverseIdeas = [...ideas].reverse()
-
-    let lastIdeas = [] // Criando nova coleção
-    for (let idea of reverseIdeas) { //Pegar as ultimas ideias
-        if ((lastIdeas.length) < 2) { // Limitando a duas ideias
-            lastIdeas.push(idea) //Add mais uma idea
+    db.all(`SELECT * FROM ideas`, function (err, rows) {
+        if (err) {
+            console.log(err)
+            return res.send("Erro no banco de dados")
         }
-    }
+        const reversedIdeas = [...rows].reverse()
+
+        let lastIdeas = [] // Criando nova coleção
+        for (let idea of reversedIdeas) { //Pegar as ultimas ideias
+            if ((lastIdeas.length) < 2) { // Limitando a duas ideias
+                lastIdeas.push(idea) //Add mais uma idea
+            }
+        }
+        return res.render("index.html", { ideas: lastIdeas })
+    })
 
 
-    return res.render("index.html", { ideas: lastIdeas })
 })
 
 server.get("/ideias", function (req, res) {
 
-    const reverseIdeas = [...ideas].reverse()
+    req.query //?title=asdadsad&category
+    db.all(`SELECT * FROM ideas`, function (err, rows) {
+        if (err) {
+            console.log(err)
+            return res.send("Erro no banco de dados")
+        }
 
-    return res.render("ideias.html", { ideas: reverseIdeas })
+        const reversedIdeas = [...rows].reverse()
+
+        return res.render("ideias.html", { ideas: reversedIdeas })
+    })
 })
 
-//Liguei meu servidor na porta 3000
+server.post("/", function (req, res) {
+
+    const query = `
+        INSERT INTO ideas(
+            image,
+            title,
+            category,
+            description,
+            link
+        ) VALUES (?,?,?,?,?);
+    `
+    const values = [
+        req.body.image,
+        req.body.title,
+        req.body.category,
+        req.body.description,
+        req.body.link,
+
+    ]
+
+    db.run(query, values, function (err) {
+        if (err) {
+            console.log(err)
+            return res.send("Erro no banco de dados")
+        }
+
+        return res.redirect("/ideias")
+    })
+})
+
+//Servidor ligado na porta 3000
 server.listen(3000)
